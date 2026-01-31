@@ -1,6 +1,6 @@
 {
-  "name": "markdown-backup-sync",
-  "version": "1.0.2",
+  "name": "@wanggan768q/markdown-backup-sync",
+  "version": "1.0.3",
   "description": "OpenCode plugin for automatic markdown backup and sync with incremental backup support. Requires explicit backup path configuration.",
   "keywords": [
     "opencode",
