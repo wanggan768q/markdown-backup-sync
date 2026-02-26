@@ -7,7 +7,9 @@ import {
     getBackupConfig, 
     ensureDir, 
     validateBackupPath,
-    ConfigError
+    ConfigError,
+    setWorkspaceRoot,
+    getWorkspaceRoot
 } from "./utils"
 import { initLogger, readLogEntries, formatLogEntries, getLogDir } from "./logger"
 import { backupMarkdownFile, backupMultipleFiles, forceBackupFiles } from "./backup"
@@ -36,7 +38,8 @@ const HASH_CACHE_FILE = "file-hashes.json"
 async function loadHashCache(): Promise<void> {
     if (!config) return
     
-    const cacheFilePath = path.join(config.backupRoot, ".backup-log", HASH_CACHE_FILE)
+    const workspaceRoot = getWorkspaceRoot()
+    const cacheFilePath = path.join(workspaceRoot, ".backup-log", HASH_CACHE_FILE)
     try {
         const content = await fs.readFile(cacheFilePath, 'utf-8')
         hashCache = JSON.parse(content)
@@ -51,7 +54,8 @@ async function loadHashCache(): Promise<void> {
 async function saveHashCache(): Promise<void> {
     if (!config || !hashCacheDirty) return
     
-    const cacheFilePath = path.join(config.backupRoot, ".backup-log", HASH_CACHE_FILE)
+    const workspaceRoot = getWorkspaceRoot()
+    const cacheFilePath = path.join(workspaceRoot, ".backup-log", HASH_CACHE_FILE)
     await ensureDir(path.dirname(cacheFilePath))
     await fs.writeFile(cacheFilePath, JSON.stringify(hashCache, null, 2))
     console.log(`💾 保存哈希缓存: ${Object.keys(hashCache).length} 个文件`)
@@ -77,7 +81,10 @@ async function initializePlugin(): Promise<{ success: boolean; message: string }
     }
     
     try {
-        // 1. 加载配置
+        // 1. 设置工作空间根目录
+        setWorkspaceRoot(worktreeRoot)
+        
+        // 2. 加载配置
         config = await getBackupConfig(worktreeRoot)
         
         // 2. 验证备份路径

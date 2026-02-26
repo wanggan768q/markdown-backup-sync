@@ -1,7 +1,7 @@
 import * as path from "path"
 import * as fs from "fs/promises"
 import type { BackupConfig } from "./utils"
-import { ensureDir } from "./utils"
+import { ensureDir, getWorkspaceRoot } from "./utils"
 
 // ========== 类型定义 ==========
 
@@ -34,7 +34,8 @@ let logFileRestore: string = ''
  */
 export async function initLogger(backupConfig: BackupConfig): Promise<void> {
     config = backupConfig
-    logDir = path.join(config.backupRoot, ".backup-log")
+    const workspaceRoot = getWorkspaceRoot()
+    logDir = path.join(workspaceRoot, ".backup-log")
     logFileBackup = path.join(logDir, "backup.log")
     logFileRestore = path.join(logDir, "restore.log")
     

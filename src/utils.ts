@@ -1,3 +1,14 @@
+// ========== 全局状态 ==========
+let currentWorkspaceRoot: string = ''
+
+export function setWorkspaceRoot(root: string): void {
+    currentWorkspaceRoot = root
+}
+
+export function getWorkspaceRoot(): string {
+    return currentWorkspaceRoot
+}
+
 import * as path from "path"
 import * as fs from "fs/promises"
 import { createHash } from "crypto"
