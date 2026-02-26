@@ -78,7 +78,7 @@ async function initializePlugin(): Promise<{ success: boolean; message: string }
     
     try {
         // 1. 加载配置
-        config = await getBackupConfig()
+        config = await getBackupConfig(worktreeRoot)
         
         // 2. 验证备份路径
         const backupRoot = config.backupRoot

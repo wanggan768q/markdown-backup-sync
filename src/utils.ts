@@ -36,9 +36,10 @@ export class ConfigError extends Error {
 
 /**
  * 生成详细的配置引导信息
+ * @param workspaceRoot 工作空间根目录
  */
-function getConfigurationGuide(): string {
-    const projectName = path.basename(process.cwd())
+function getConfigurationGuide(workspaceRoot: string): string {
+    const projectName = path.basename(workspaceRoot)
     
     return `
 ══════════════════════════════════════════════════════════════════
@@ -55,7 +56,7 @@ function getConfigurationGuide(): string {
 
 在项目根目录下创建配置文件：
 
-  文件路径: .opencode/backup-config.json
+  文件路径: .config/backup-config.json
 
   配置内容:
   {
@@ -111,16 +112,62 @@ Linux/Mac (Bash):
 
 /**
  * 获取备份配置（强制要求配置backupRoot）
+ * @param workspaceRoot 工作空间根目录，用于定位配置文件
  * @throws {ConfigError} 如果配置不存在或无效
  */
-export async function getBackupConfig(): Promise<BackupConfig> {
-    // 1. 检查环境变量
+export async function getBackupConfig(workspaceRoot: string): Promise<BackupConfig> {
+    // 1. 检查项目配置文件 (.config/ 优先级最高)
+    const configPath = path.join(workspaceRoot, '.config', 'backup-config.json')
+    let configFileExists = false
+    try {
+        await fs.access(configPath)
+        configFileExists = true
+    } catch {
+        configFileExists = false
+    }
+    
+    if (configFileExists) {
+        try {
+            const configContent = await fs.readFile(configPath, 'utf-8')
+            const config = JSON.parse(configContent)
+            
+            // 验证必须的配置项
+            if (!config.backupRoot || typeof config.backupRoot !== 'string' || config.backupRoot.trim() === '') {
+                throw new ConfigError(
+                    '配置文件中缺少或无效的 backupRoot 配置',
+                    getConfigurationGuide(workspaceRoot)
+                )
+            }
+            
+            return {
+                backupRoot: config.backupRoot.trim(),
+                enabled: config.enabled !== false,
+                autoBackup: config.autoBackup !== false,
+                logEnabled: config.logEnabled !== false
+            }
+        } catch (error) {
+            if (error instanceof ConfigError) {
+                throw error
+            }
+            
+            if (error instanceof SyntaxError) {
+                throw new ConfigError(
+                    '配置文件 JSON 格式错误',
+                    getConfigurationGuide(workspaceRoot)
+                )
+            }
+            
+            // 配置文件读取失败，继续检查环境变量
+        }
+    }
+    
+    // 2. 检查环境变量
     if (process.env.MARKDOWN_BACKUP_ROOT) {
         const backupRoot = process.env.MARKDOWN_BACKUP_ROOT
         if (!backupRoot || backupRoot.trim() === '') {
             throw new ConfigError(
                 '环境变量 MARKDOWN_BACKUP_ROOT 为空',
-                getConfigurationGuide()
+                getConfigurationGuide(workspaceRoot)
             )
         }
         return {
@@ -131,45 +178,14 @@ export async function getBackupConfig(): Promise<BackupConfig> {
         }
     }
     
-    // 2. 检查项目配置文件
-    const configPath = path.join(process.cwd(), '.opencode', 'backup-config.json')
-    try {
-        const configContent = await fs.readFile(configPath, 'utf-8')
-        const config = JSON.parse(configContent)
-        
-        // 验证必须的配置项
-        if (!config.backupRoot || typeof config.backupRoot !== 'string' || config.backupRoot.trim() === '') {
-            throw new ConfigError(
-                '配置文件中缺少或无效的 backupRoot 配置',
-                getConfigurationGuide()
-            )
-        }
-        
-        return {
-            backupRoot: config.backupRoot.trim(),
-            enabled: config.enabled !== false,
-            autoBackup: config.autoBackup !== false,
-            logEnabled: config.logEnabled !== false
-        }
-    } catch (error) {
-        if (error instanceof ConfigError) {
-            throw error
-        }
-        
-        if (error instanceof SyntaxError) {
-            throw new ConfigError(
-                '配置文件 JSON 格式错误',
-                getConfigurationGuide()
-            )
-        }
-        
-        // 配置文件不存在
-        throw new ConfigError(
-            '未找到备份配置文件',
-            getConfigurationGuide()
-        )
-    }
+    // 3. 未找到配置
+    throw new ConfigError(
+        '未找到备份配置文件',
+        getConfigurationGuide(workspaceRoot)
+    )
 }
+
+// ========== 路径验证 ==========
 
 // ========== 路径验证 ==========
 

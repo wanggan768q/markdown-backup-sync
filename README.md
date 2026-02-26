@@ -28,7 +28,7 @@
 ## 📦 安装
 
 ```bash
-npm install markdown-backup-sync
+npm install -g @wanggan768q/markdown-backup-sync
 ```
 
 ---
