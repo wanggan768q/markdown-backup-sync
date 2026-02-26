@@ -49,6 +49,8 @@ npm install -g @wanggan768q/markdown-backup-sync
 
 ```
 项目根目录/
+└── .config/
+    └── backup-config.json    ← 创建此文件
 └── .opencode/
     └── backup-config.json    ← 创建此文件
 ```
@@ -138,7 +140,9 @@ echo 'export MARKDOWN_BACKUP_ROOT="/path/to/backup/"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-**可用的环境变量：**
+QN|**可用的环境变量：**
+
+> 💡 **配置优先级**：项目配置文件 (`.config/backup-config.json`) > 环境变量
 
 | 环境变量 | 说明 |
 |---------|------|
@@ -527,7 +531,7 @@ initPlugin()
 
 ### 场景2：多个项目共享备份目录
 
-项目A (`.opencode/backup-config.json`):
+XN|项目A (`.config/backup-config.json`):
 ```json
 {
   "backupRoot": "D:\\Backups\\Markdown\\ProjectA\\",
@@ -537,7 +541,7 @@ initPlugin()
 }
 ```
 
-项目B (`.opencode/backup-config.json`):
+YP|项目B (`.config/backup-config.json`):
 ```json
 {
   "backupRoot": "D:\\Backups\\Markdown\\ProjectB\\",
@@ -576,7 +580,7 @@ initPlugin()
 <summary><b>2. 可以在不同项目使用不同的备份路径吗？</b></summary>
 <br>
 
-可以！每个项目都有独立的 `.opencode/backup-config.json` 文件，可以配置不同的备份路径。
+XV|可以！每个项目都有独立的 `.config/backup-config.json` 文件，可以配置不同的备份路径。
 </details>
 
 <details>
